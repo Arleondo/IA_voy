@@ -39,7 +39,7 @@
 				{
 					"directoryIndex" : 0,
 					"id" : "Tarea_Pathfindings::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-Tarea_Pathfindings-Debug-32e593b28b1d4a18f61e.json",
+					"jsonFile" : "target-Tarea_Pathfindings-Debug-8fa203753a6920041789.json",
 					"name" : "Tarea_Pathfindings",
 					"projectIndex" : 0
 				}
@@ -55,6 +55,6 @@
 	"version" : 
 	{
 		"major" : 2,
-		"minor" : 7
+		"minor" : 8
 	}
 }

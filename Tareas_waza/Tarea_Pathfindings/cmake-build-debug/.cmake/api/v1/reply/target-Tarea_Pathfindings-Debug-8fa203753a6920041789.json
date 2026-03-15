@@ -96,10 +96,6 @@
 				"role" : "flags"
 			},
 			{
-				"fragment" : "",
-				"role" : "flags"
-			},
-			{
 				"backtrace" : 3,
 				"fragment" : "C:\\vcpkg\\installed\\x64-mingw-dynamic\\debug\\lib\\libglfw3dll.a",
 				"role" : "libraries"

@@ -1,0 +1,8 @@
+[
+{
+  "directory": "D:/IA_voy/Tareas_waza/Tarea_Pathfindings/cmake-build-debug",
+  "command": "C:\\PROGRA~1\\JETBRA~1\\CLION2~1.2\\bin\\mingw\\bin\\G__~1.EXE -DGLFW_DLL -isystem C:/vcpkg/installed/x64-mingw-dynamic/include -g -std=gnu++23 -fdiagnostics-color=always -o CMakeFiles\\Tarea_Pathfindings.dir\\main.cpp.obj -c D:\\IA_voy\\Tareas_waza\\Tarea_Pathfindings\\main.cpp",
+  "file": "D:/IA_voy/Tareas_waza/Tarea_Pathfindings/main.cpp",
+  "output": "D:/IA_voy/Tareas_waza/Tarea_Pathfindings/cmake-build-debug/CMakeFiles/Tarea_Pathfindings.dir/main.cpp.obj"
+}
+]
