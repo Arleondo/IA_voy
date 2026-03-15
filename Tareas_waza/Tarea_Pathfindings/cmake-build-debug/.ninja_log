@@ -1,4 +1,4 @@
 # ninja log v6
-5	562	7951779637918617	CMakeFiles/Tarea_Pathfindings.dir/main.cpp.obj	6bd0c0c01d98b00c
-562	1258	7951779643487915	Tarea_Pathfindings.exe	fe2e77b6fd4115e4
-3	665	7952682378693872	build.ninja	19b7f5357d5bdac8
+21	746	7952560277665420	CMakeFiles/Tarea_Pathfindings.dir/main.cpp.obj	6bd0c0c01d98b00c
+746	1471	7952560284926763	Tarea_Pathfindings.exe	fe2e77b6fd4115e4
+15	266	7952682917588284	build.ninja	19b7f5357d5bdac8
