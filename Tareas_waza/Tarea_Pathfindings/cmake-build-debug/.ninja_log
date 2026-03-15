@@ -1,4 +1,8 @@
 # ninja log v6
 21	746	7952560277665420	CMakeFiles/Tarea_Pathfindings.dir/main.cpp.obj	6bd0c0c01d98b00c
 746	1471	7952560284926763	Tarea_Pathfindings.exe	fe2e77b6fd4115e4
+<<<<<<< Updated upstream
 15	266	7952682917588284	build.ninja	19b7f5357d5bdac8
+=======
+15	266	7952608017887682	build.ninja	19b7f5357d5bdac8
+>>>>>>> Stashed changes
