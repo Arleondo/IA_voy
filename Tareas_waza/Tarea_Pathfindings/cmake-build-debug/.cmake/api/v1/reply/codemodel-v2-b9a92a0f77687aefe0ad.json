@@ -39,15 +39,7 @@
 				{
 					"directoryIndex" : 0,
 					"id" : "Tarea_Pathfindings::@6890427a1f51a3e7e1df",
-<<<<<<< Updated upstream
-<<<<<<<< Updated upstream:Tareas_waza/Tarea_Pathfindings/cmake-build-debug/.cmake/api/v1/reply/codemodel-v2-fbedcc7dc9e562f78a56.json
-					"jsonFile" : "target-Tarea_Pathfindings-Debug-8fa203753a6920041789.json",
-========
 					"jsonFile" : "target-Tarea_Pathfindings-Debug-829551e790b4045f5ac4.json",
->>>>>>>> Stashed changes:Tareas_waza/Tarea_Pathfindings/cmake-build-debug/.cmake/api/v1/reply/codemodel-v2-b9a92a0f77687aefe0ad.json
-=======
-					"jsonFile" : "target-Tarea_Pathfindings-Debug-829551e790b4045f5ac4.json",
->>>>>>> Stashed changes
 					"name" : "Tarea_Pathfindings",
 					"projectIndex" : 0
 				}
