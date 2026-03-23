@@ -24,7 +24,7 @@ int nodo2x = -1, nodo2y = -1; // Fin (rojo)
 
 // ===== GRID =====
 float gridWidth = 1.8f;
-float gridHeight = gridWidth * (float)Altura_grilla / (float)Ancho_grilla;
+float gridHeight = gridWidth * static_cast<float>(Altura_grilla) / static_cast<float>(Ancho_grilla);
 
 float stepX = gridWidth / Ancho_grilla;
 float stepY = gridHeight / Altura_grilla;
@@ -97,7 +97,7 @@ public:
                 conectar(i, j);
     }
 
-    void conectar(int x, int y) {
+    void conectar(int x, int y) const {
         Nodo* n = grid[x][y];
         for (int dx = -1; dx <= 1; dx++)
             for (int dy = -1; dy <= 1; dy++) {
@@ -112,8 +112,8 @@ public:
 
 //Heuristica
 float H(Nodo* a, Nodo* b) {
-    float dx = (float)abs(a->x - b->x);
-    float dy = (float)abs(a->y - b->y);
+    float dx = static_cast<float>(abs(a->x - b->x));
+    float dy = static_cast<float>(abs(a->y - b->y));
     // Formula: (dx + dy) + (sqrt(2) - 2) * min(dx, dy)
     return (dx + dy) + (1.41421356f - 2.0f) * fminf(dx, dy);
 }
@@ -191,9 +191,11 @@ void AStar(Tabla& t) {
 void Hill(Tabla& t) {
     hillVertices.clear();
     hillExploredVertices.clear();
-    hillCollisionsVertices.clear(); // Limpiamos choques anteriores
+    hillCollisionsVertices.clear();
 
     if (nodo1x == -1 || nodo2x == -1) return;
+
+    bool visitado[Ancho_grilla][Altura_grilla] = {};
 
     Nodo* start = t.grid[nodo1x][nodo1y];
     Nodo* end = t.grid[nodo2x][nodo2y];
@@ -201,43 +203,42 @@ void Hill(Tabla& t) {
     vector<pair<Nodo*, vector<Nodo*>>> L;
     L.push_back({start, {start}});
 
+    vector<Nodo*> ultimoCamino;
+
     while (!L.empty()) {
-        auto [n, camino] = L.front();
+        pair<Nodo*, vector<Nodo*>> current = L.front();
         L.erase(L.begin());
 
+        Nodo* n = current.first;
+        vector<Nodo*> camino = current.second;
+
+        if (visitado[n->x][n->y]) continue;
+        visitado[n->x][n->y] = true;
+
+        ultimoCamino = camino;
+
         if (n == end) {
-            // RECONSTRUCCIÓN REAL DEL CAMINO
-            for (int i = 0; i < (int)camino.size() - 1; i++) {
-                Nodo* a = camino[i];
-                Nodo* b = camino[i + 1];
-
-                float x1 = startX + a->x * stepX;
-                float y1 = startY + a->y * stepY;
-                float x2 = startX + b->x * stepX;
-                float y2 = startY + b->y * stepY;
-
-                hillVertices.insert(hillVertices.end(), { x1, y1, x2, y2 });
-            }
-            return; // Ahora sí, salimos con el vector lleno
+            ultimoCamino = camino;
+            break;
         }
 
         vector<Nodo*> hijos;
+
         for (int i = 0; i < n->nVecinos; i++) {
             Nodo* nb = n->vecinos[i];
 
-            // --- VISUALIZACIÓN DE BLOQUEOS ---
             if (nb->bloqueado) {
-                // Si está bloqueado, guardamos la línea de "intento"
                 hillCollisionsVertices.insert(hillCollisionsVertices.end(), {
                     startX + n->x * stepX, startY + n->y * stepY,
                     startX + nb->x * stepX, startY + nb->y * stepY
                 });
-                continue; // No lo añadimos a la lista de hijos válidos
+                continue;
             }
-            hijos.push_back(nb);
+
+            if (!visitado[nb->x][nb->y])
+                hijos.push_back(nb);
         }
 
-        // Ordenar hijos por H y continuar...
         sort(hijos.begin(), hijos.end(), [&](Nodo* a, Nodo* b) {
             return H(a, end) < H(b, end);
         });
@@ -247,10 +248,26 @@ void Hill(Tabla& t) {
                 startX + n->x * stepX, startY + n->y * stepY,
                 startX + hijos[i]->x * stepX, startY + hijos[i]->y * stepY
             });
+
             vector<Nodo*> nuevoCamino = camino;
             nuevoCamino.push_back(hijos[i]);
             L.insert(L.begin(), {hijos[i], nuevoCamino});
         }
+    }
+
+    //Dibujado
+    if (ultimoCamino.size() >= 2) {
+        for (int i = 0; i < ultimoCamino.size() - 1; i++) {
+            Nodo* a = ultimoCamino[i];
+            Nodo* b = ultimoCamino[i + 1];
+
+            hillVertices.insert(hillVertices.end(), {
+                startX + a->x * stepX, startY + a->y * stepY,
+                startX + b->x * stepX, startY + b->y * stepY
+            });
+        }
+    } else {
+        cout << "Hill: sin ruta\n";
     }
 }
 
@@ -268,49 +285,51 @@ void Profundidad(Tabla& t) {
     vector<pair<Nodo*, vector<Nodo*>>> L;
     L.push_back({start, {start}});
 
+    vector<Nodo*> ultimoCamino;
+
     while (!L.empty()) {
-        auto [n, camino] = L.front();
+        pair<Nodo*, vector<Nodo*>> current = L.front();
         L.erase(L.begin());
 
-        //evita bucles
+        Nodo* n = current.first;
+        vector<Nodo*> camino = current.second;
+
         if (visitado[n->x][n->y]) continue;
         visitado[n->x][n->y] = true;
 
-        if (n == end) {
-            for (int i = 0; i < (int)camino.size() - 1; i++) {
-                Nodo* a = camino[i];
-                Nodo* b = camino[i + 1];
+        ultimoCamino = camino;
 
-                float x1 = startX + a->x * stepX;
-                float y1 = startY + a->y * stepY;
-                float x2 = startX + b->x * stepX;
-                float y2 = startY + b->y * stepY;
-
-                dfsVertices.insert(dfsVertices.end(), { x1, y1, x2, y2 });
-            }
-            return;
-        }
-
-        vector<Nodo*> hijos;
+        if (n == end) break;
 
         for (int i = 0; i < n->nVecinos; i++) {
             Nodo* nb = n->vecinos[i];
-            if (nb->bloqueado) continue;
+            if (nb->bloqueado || visitado[nb->x][nb->y]) continue;
 
             dfsExploredVertices.insert(dfsExploredVertices.end(), {
                 startX + n->x * stepX, startY + n->y * stepY,
                 startX + nb->x * stepX, startY + nb->y * stepY
             });
 
-            hijos.push_back(nb);
-        }
-
-        // IMPORTANTE: DFS → insertar al INICIO
-        for (int i = 0; i < hijos.size(); i++) {
             vector<Nodo*> nuevoCamino = camino;
-            nuevoCamino.push_back(hijos[i]);
-            L.insert(L.begin(), {hijos[i], nuevoCamino});
+            nuevoCamino.push_back(nb);
+
+            L.insert(L.begin(), {nb, nuevoCamino});
         }
+    }
+
+    //Dibujado
+    if (ultimoCamino.size() >= 2) {
+        for (int i = 0; i < ultimoCamino.size() - 1; i++) {
+            Nodo* a = ultimoCamino[i];
+            Nodo* b = ultimoCamino[i + 1];
+
+            dfsVertices.insert(dfsVertices.end(), {
+                startX + a->x * stepX, startY + a->y * stepY,
+                startX + b->x * stepX, startY + b->y * stepY
+            });
+        }
+    } else {
+        cout << "DFS: sin ruta\n";
     }
 }
 
@@ -328,32 +347,25 @@ void Amplitud(Tabla& t) {
     vector<pair<Nodo*, vector<Nodo*>>> L;
     L.push_back({start, {start}});
 
+    vector<Nodo*> ultimoCamino;
+
     while (!L.empty()) {
-        auto [n, camino] = L.front();
+        pair<Nodo*, vector<Nodo*>> current = L.front();
         L.erase(L.begin());
 
-        //evita bucles
+        Nodo* n = current.first;
+        vector<Nodo*> camino = current.second;
+
         if (visitado[n->x][n->y]) continue;
         visitado[n->x][n->y] = true;
 
-        if (n == end) {
-            for (int i = 0; i < (int)camino.size() - 1; i++) {
-                Nodo* a = camino[i];
-                Nodo* b = camino[i + 1];
+        ultimoCamino = camino;
 
-                float x1 = startX + a->x * stepX;
-                float y1 = startY + a->y * stepY;
-                float x2 = startX + b->x * stepX;
-                float y2 = startY + b->y * stepY;
-
-                bfsVertices.insert(bfsVertices.end(), { x1, y1, x2, y2 });
-            }
-            return;
-        }
+        if (n == end) break;
 
         for (int i = 0; i < n->nVecinos; i++) {
             Nodo* nb = n->vecinos[i];
-            if (nb->bloqueado) continue;
+            if (nb->bloqueado || visitado[nb->x][nb->y]) continue;
 
             bfsExploredVertices.insert(bfsExploredVertices.end(), {
                 startX + n->x * stepX, startY + n->y * stepY,
@@ -363,11 +375,23 @@ void Amplitud(Tabla& t) {
             vector<Nodo*> nuevoCamino = camino;
             nuevoCamino.push_back(nb);
 
-            // BFS → insertar al FINAL
             L.push_back({nb, nuevoCamino});
         }
+    }
 
+    //Dibujado
+    if (ultimoCamino.size() >= 2) {
+        for (int i = 0; i < ultimoCamino.size() - 1; i++) {
+            Nodo* a = ultimoCamino[i];
+            Nodo* b = ultimoCamino[i + 1];
 
+            bfsVertices.insert(bfsVertices.end(), {
+                startX + a->x * stepX, startY + a->y * stepY,
+                startX + b->x * stepX, startY + b->y * stepY
+            });
+        }
+    } else {
+        cout << "BFS: sin ruta\n";
     }
 }
 
@@ -475,7 +499,7 @@ void bloquearNodosAleatorios(Tabla& t) {
 
     for (int i = 0; i < Ancho_grilla; i++)
         for (int j = 0; j < Altura_grilla; j++)
-            t.grid[i][j]->bloqueado = (dist(gen) < 0.2f);
+            t.grid[i][j]->bloqueado = (dist(gen) < 0.5f);
 
     if (nodo1x != -1 && t.grid[nodo1x][nodo1y]->bloqueado) {
         nodo1x = nodo1y = -1;
@@ -512,8 +536,8 @@ bool getNode(GLFWwindow* w, int& gx, int& gy) {
     float fx = (worldX - startX) / stepX;
     float fy = (worldY - startY) / stepY;
 
-    gx = (int)fx;
-    gy = (int)fy;
+    gx = static_cast<int>(fx);
+    gy = static_cast<int>(fy);
 
     return (gx >= 0 && gx < Ancho_grilla && gy >= 0 && gy < Altura_grilla);
 }
@@ -531,7 +555,7 @@ void initBuffers() {
     glBindVertexArray(VAO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, 0, nullptr, GL_DYNAMIC_DRAW);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), static_cast<void *>(nullptr));
     glEnableVertexAttribArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
@@ -540,7 +564,7 @@ void initBuffers() {
     glBindVertexArray(pathVAO);
     glBindBuffer(GL_ARRAY_BUFFER, pathVBO);
     glBufferData(GL_ARRAY_BUFFER, 0, nullptr, GL_DYNAMIC_DRAW);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), static_cast<void *>(nullptr));
     glEnableVertexAttribArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
@@ -549,7 +573,7 @@ void initBuffers() {
     glBindVertexArray(hillVAO);
     glBindBuffer(GL_ARRAY_BUFFER, hillVBO);
     glBufferData(GL_ARRAY_BUFFER, 0, nullptr, GL_DYNAMIC_DRAW);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), static_cast<void *>(nullptr));
     glEnableVertexAttribArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
@@ -558,7 +582,7 @@ void initBuffers() {
     glBindVertexArray(startNodeVAO);
     glBindBuffer(GL_ARRAY_BUFFER, startNodeVBO);
     glBufferData(GL_ARRAY_BUFFER, 2 * sizeof(float), nullptr, GL_DYNAMIC_DRAW);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), static_cast<void *>(nullptr));
     glEnableVertexAttribArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
@@ -567,7 +591,7 @@ void initBuffers() {
     glBindVertexArray(endNodeVAO);
     glBindBuffer(GL_ARRAY_BUFFER, endNodeVBO);
     glBufferData(GL_ARRAY_BUFFER, 2 * sizeof(float), nullptr, GL_DYNAMIC_DRAW);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), static_cast<void *>(nullptr));
     glEnableVertexAttribArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
@@ -575,19 +599,19 @@ void initBuffers() {
     glGenVertexArrays(1, &astarExploredVAO); glGenBuffers(1, &astarExploredVBO);
     glBindVertexArray(astarExploredVAO);
     glBindBuffer(GL_ARRAY_BUFFER, astarExploredVBO);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), static_cast<void *>(nullptr));
     glEnableVertexAttribArray(0);
 
     glGenVertexArrays(1, &hillExploredVAO); glGenBuffers(1, &hillExploredVBO);
     glBindVertexArray(hillExploredVAO);
     glBindBuffer(GL_ARRAY_BUFFER, hillExploredVBO);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), static_cast<void *>(nullptr));
     glEnableVertexAttribArray(0);
 
     glGenVertexArrays(1, &hillCollisionsVAO); glGenBuffers(1, &hillCollisionsVBO);
     glBindVertexArray(hillCollisionsVAO);
     glBindBuffer(GL_ARRAY_BUFFER, hillCollisionsVBO);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), static_cast<void *>(nullptr));
     glEnableVertexAttribArray(0);
 
     //DFS
@@ -595,14 +619,14 @@ void initBuffers() {
     glBindVertexArray(dfsVAO);
     glBindBuffer(GL_ARRAY_BUFFER, dfsVBO);
     glBufferData(GL_ARRAY_BUFFER, 0, nullptr, GL_DYNAMIC_DRAW);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2*sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2*sizeof(float), static_cast<void *>(nullptr));
     glEnableVertexAttribArray(0);
 
     //Explorados DFS
     glGenVertexArrays(1, &dfsExploredVAO); glGenBuffers(1, &dfsExploredVBO);
     glBindVertexArray(dfsExploredVAO);
     glBindBuffer(GL_ARRAY_BUFFER, dfsExploredVBO);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2*sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2*sizeof(float), static_cast<void *>(nullptr));
     glEnableVertexAttribArray(0);
 
     //BFS
@@ -610,14 +634,14 @@ void initBuffers() {
     glBindVertexArray(bfsVAO);
     glBindBuffer(GL_ARRAY_BUFFER, bfsVBO);
     glBufferData(GL_ARRAY_BUFFER, 0, nullptr, GL_DYNAMIC_DRAW);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2*sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2*sizeof(float), static_cast<void *>(nullptr));
     glEnableVertexAttribArray(0);
 
     //Explorados BFS
     glGenVertexArrays(1, &bfsExploredVAO); glGenBuffers(1, &bfsExploredVBO);
     glBindVertexArray(bfsExploredVAO);
     glBindBuffer(GL_ARRAY_BUFFER, bfsExploredVBO);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2*sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2*sizeof(float), static_cast<void *>(nullptr));
     glEnableVertexAttribArray(0);
 }
 
@@ -627,12 +651,12 @@ int main() {
 
     GLFWmonitor* monitor = glfwGetPrimaryMonitor();
     const GLFWvidmode* mode = glfwGetVideoMode(monitor);
-    GLFWwindow* window = glfwCreateWindow(mode->width, mode->height, "A* Pathfinding", monitor, NULL);
+    GLFWwindow* window = glfwCreateWindow(mode->width, mode->height, "A* Pathfinding", monitor, nullptr);
     if (!window) { glfwTerminate(); return -1; }
 
     glfwMakeContextCurrent(window);
     glfwSetScrollCallback(window, scroll);
-    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) return -1;
+    if (!gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress))) return -1;
 
     glEnable(GL_PROGRAM_POINT_SIZE);
     glPointSize(10.0f);
@@ -731,7 +755,7 @@ int main() {
         // Render
         int width, height;
         glfwGetWindowSize(window, &width, &height);
-        float aspect = (float)width / (float)height;
+        float aspect = static_cast<float>(width) / static_cast<float>(height);
 
         glClear(GL_COLOR_BUFFER_BIT);
 
