@@ -499,7 +499,7 @@ void bloquearNodosAleatorios(Tabla& t) {
 
     for (int i = 0; i < Ancho_grilla; i++)
         for (int j = 0; j < Altura_grilla; j++)
-            t.grid[i][j]->bloqueado = (dist(gen) < 0.5f);
+            t.grid[i][j]->bloqueado = (dist(gen) < 0.2f);
 
     if (nodo1x != -1 && t.grid[nodo1x][nodo1y]->bloqueado) {
         nodo1x = nodo1y = -1;
