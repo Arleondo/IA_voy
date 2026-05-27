@@ -1,31 +1,22 @@
-#ifndef PERCEPTRON_IMAGENES_PERCEPTRON_CUH
-#define PERCEPTRON_IMAGENES_PERCEPTRON_CUH
-
 #pragma once
 
-class GPUPerceptron
-{
+class GPUPerceptron{
 public:
 
-    float* d_weights;
-    float* d_biases;
-    float* d_outputs;
-    float* d_input;
+    float* d_weights{};
+    float* d_biases{};
+    float* d_outputs{};
+    float* d_input{};
 
     GPUPerceptron();
 
     ~GPUPerceptron();
 
-    void forward(
-        const float* input,
-        float* outputs
-    );
+    void forward(const float* input,float* outputs) const;
 
-    void train(
-        const float* input,
-        int label,
-        float learningRate
-    );
+    void train(const float* input,int label,float learningRate) const;
+
+    void saveModel(const char* filename) const;
+
+    void loadModel(const char* filename) const;
 };
-
-#endif //PERCEPTRON_IMAGENES_PERCEPTRON_CUH
